@@ -1,17 +1,37 @@
 from datetime import datetime, timezone
 import os
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import joblib
 import pandas as pd
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='assets', static_url_path='/assets')
 CORS(app)
 
+
+def ensure_models():
+    model_dir = 'models'
+    survive_path = os.path.join(model_dir, 'survive_model.pkl')
+    sabotage_path = os.path.join(model_dir, 'sabotage_model.pkl')
+
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir, exist_ok=True)
+
+    missing = [path for path in (survive_path, sabotage_path) if not os.path.exists(path)]
+    if missing:
+        try:
+            from train import train_and_serialize
+            train_and_serialize()
+        except Exception as exc:
+            raise RuntimeError(
+                f"Missing model artifacts and auto-training failed: {exc}"
+            ) from exc
+
+    return joblib.load(survive_path), joblib.load(sabotage_path)
+
 # Load the trained pipelines into memory
-survive_model = joblib.load('models/survive_model.pkl')
-sabotage_model = joblib.load('models/sabotage_model.pkl')
+survive_model, sabotage_model = ensure_models()
 
 MODEL_VERSION = os.getenv('MODEL_VERSION', '1.0.0-beta')
 MODEL_CREATED_AT = os.getenv('MODEL_CREATED_AT', datetime.now(timezone.utc).isoformat())
@@ -58,6 +78,16 @@ def build_confidence(survive_prob):
     else:
         confidence_band = 'Low'
     return confidence_score, confidence_band
+
+
+@app.route('/', methods=['GET'])
+def homepage():
+    return send_from_directory('.', 'index.html')
+
+
+@app.route('/health', methods=['GET'])
+def health():
+    return jsonify({'status': 'ok', 'message': 'Among Us MLOps app is healthy.'})
 
 
 @app.route('/model-info', methods=['GET'])

@@ -84,9 +84,9 @@ After this finishes, the following artifacts are created:
 - `models/survive_model.pkl`
 - `models/sabotage_model.pkl`
 
-### 5. Start the Flask API
+### 5. Start the Flask API and frontend
 
-`app.py` loads the trained models into memory and exposes the API.
+`app.py` loads the trained models into memory and hosts both the API and the frontend UI.
 
 Run it with:
 
@@ -94,15 +94,48 @@ Run it with:
 python app.py
 ```
 
-The server starts on:
+Then open the app in your browser at:
 
 ```text
-http://localhost:5000
+http://127.0.0.1:5000
 ```
 
 ### 6. Use the frontend
 
-Open `index.html` in your browser or serve it from your preferred local static server.
+The UI is now served directly from the Flask app, so you can use the same URL above without opening `index.html` manually.
+
+If you still prefer a static preview, you can also open `index.html` directly, but the recommended workflow is to use the server-hosted version so API calls work consistently.
+
+## Docker support
+
+A Docker container is included so the app can run with the same environment everywhere.
+
+Build the container with:
+
+```bash
+docker build -t among-us-mlops .
+```
+
+Run it with:
+
+```bash
+docker run --rm -p 5000:5000 among-us-mlops
+```
+
+Then visit:
+
+```text
+http://127.0.0.1:5000
+```
+
+## Tests
+
+A lightweight test suite is included for API sanity checks. Install the development requirements and run:
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
 
 The frontend:
 

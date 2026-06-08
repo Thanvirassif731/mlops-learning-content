@@ -869,7 +869,7 @@
             btn.textContent = source === 'live' ? 'Simulating...' : 'Analyzing...';
 
             try {
-                const response = await fetch('http://localhost:5000/predict', {
+                const response = await fetch('/predict', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -914,7 +914,7 @@
 
         async function loadModelInfo() {
             try {
-                const response = await fetch('http://localhost:5000/model-info');
+                const response = await fetch('/model-info');
                 const data = await response.json();
                 if (response.ok && data.status === 'success' && data.model_version) {
                     modelVersion.textContent = `Version ${data.model_version} Beta Testing`;
